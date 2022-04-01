@@ -27,7 +27,7 @@ namespace SimManager
 {
     public sealed partial class MainPage : Page
     {
-        ObservableCollection<SimCard> simCards = new ObservableCollection<SimCard>();
+        ObservableCollection<ISimCard> simCards = new ObservableCollection<ISimCard>();
         SimCard selectedSimCard;
         string visualState = "";
 
@@ -43,16 +43,31 @@ namespace SimManager
             simCards = SimCardsDataSource.GetAllItems();
 
             SimCardList.ItemsSource = simCards;
-            selectedSimCard = simCards.First();
+
+            if (simCards.First().Type == SimCardType.Standard)
+            {
+                selectedSimCard = (StandardSimCard)simCards.First();
+            } else
+            {
+                selectedSimCard = (EnhancedSimCard)simCards.First();
+            }
+
             checkAppBarButtons();
             Bindings.Update();
         }
 
         private void SimCardList_ItemClick(object sender, ItemClickEventArgs e)
         {
-            var simCard = (SimCard)e.ClickedItem;
-            selectedSimCard = simCard;
-            Debug.WriteLine(simCard.GetInfo());
+            var simCard = (ISimCard)e.ClickedItem;
+
+            if (simCard.Type == SimCardType.Standard)
+            {
+                selectedSimCard = simCard as StandardSimCard;
+            } else
+            {
+                selectedSimCard = simCard as EnhancedSimCard;
+            }
+
             checkAppBarButtons();
 
             Bindings.Update();
@@ -81,14 +96,30 @@ namespace SimManager
 
             ContentDialogResult result = await newSimCard.ShowAsync();
 
-            simCards.Add(new SimCard()
+            int newId = simCards.Count + 1;
+
+            if (result == ContentDialogResult.Primary)
             {
-                id = 10,
-                MSISDN = 308285112,
-                Subscriber = "Drahos István",
-                PinCode = 1234,
-                Created = DateTime.Now,
-            });
+                simCards.Add(new StandardSimCard()
+                {
+                    id = newId,
+                    MSISDN = 308285112,
+                    Subscriber = string.Format("Subscriber {0}", newId),
+                    PinCode = 1111,
+                    Created = DateTime.Now,
+                });
+            } else 
+            {
+                simCards.Add(new EnhancedSimCard()
+                {
+                    id = newId,
+                    MSISDN = 308285112,
+                    Subscriber = string.Format("Subscriber {0}", newId),
+                    PinCode = 2222,
+                    Created = DateTime.Now,
+                });
+            }
+            
 
             Debug.WriteLine(result);
         }
@@ -111,6 +142,7 @@ namespace SimManager
             GetBallanceButton.Visibility = Visibility.Collapsed;
             ActivationButton.Visibility = Visibility.Collapsed;
             DisableButton.Visibility = Visibility.Collapsed;
+            ReActivationButton.Visibility = Visibility.Collapsed;
 
 
             if (selectedSimCard.Status == SimCardStatus.Active)
@@ -119,17 +151,80 @@ namespace SimManager
                 GetBallanceButton.Visibility = Visibility.Visible;
             }
 
-            if (selectedSimCard.Status == SimCardStatus.Inactive || selectedSimCard.Status == SimCardStatus.Disabled)
+            if (selectedSimCard.Status == SimCardStatus.Inactive)
             {
                 ActivationButton.Visibility= Visibility.Visible;
             }
+
+            if (selectedSimCard.Status == SimCardStatus.Disabled && selectedSimCard.Type == SimCardType.Enhanced)
+            {
+                ReActivationButton.Visibility = Visibility.Visible;
+            }
         }
 
-        private void ActivationButton_Click(object sender, RoutedEventArgs e)
+        private async void ActivationButton_Click(object sender, RoutedEventArgs e)
         {
-            selectedSimCard.Status = SimCardStatus.Active;
-            checkAppBarButtons();
-            Bindings.Update();
+            TextBox input = new TextBox()
+            {
+                Height = (double)App.Current.Resources["TextControlThemeMinHeight"],
+                PlaceholderText = "PIN kód"
+            };
+            ContentDialog dialog = new ContentDialog()
+            {
+                Title = "Adja meg a kártya PIN kódját",
+                MaxWidth = this.ActualWidth,
+                PrimaryButtonText = "OK",
+                SecondaryButtonText = "Mégse",
+                Content = input
+            };
+            ContentDialogResult result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                input = (TextBox)dialog.Content;
+                bool activation = selectedSimCard.Activate(int.Parse(input.Text));
+                checkAppBarButtons();
+                Bindings.Update();
+
+                if (!activation)
+                {
+                    await new Windows.UI.Popups.MessageDialog("Helytelen PIN kódot adott meg!").ShowAsync();
+                }
+            }
+            
+        }
+
+        private async void ReActivationButton_Click(object sender, RoutedEventArgs e)
+        {
+            Debug.WriteLine("Reactivation button clicked");
+            Debug.WriteLine(selectedSimCard);
+
+            TextBox input = new TextBox()
+            {
+                Height = (double)App.Current.Resources["TextControlThemeMinHeight"],
+                PlaceholderText = "PUK kód"
+            };
+            ContentDialog dialog = new ContentDialog()
+            {
+                Title = "Adja meg a kártya PUK kódját",
+                MaxWidth = this.ActualWidth,
+                PrimaryButtonText = "OK",
+                SecondaryButtonText = "Mégse",
+                Content = input
+            };
+            ContentDialogResult result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                input = (TextBox)dialog.Content;
+                bool reActivation = selectedSimCard.ReActivate(int.Parse(input.Text));
+                checkAppBarButtons();
+                Bindings.Update();
+
+                if (!reActivation)
+                {
+                    await new Windows.UI.Popups.MessageDialog("Helytelen PUK kódot adott meg!").ShowAsync();
+                }
+            }
+
         }
 
         private void DisableButton_Click(object sender, RoutedEventArgs e)

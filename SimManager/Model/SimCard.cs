@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SimManager.Model
 {
-    public class SimCard
+    public class SimCard: ISimCard
     {
         public int id { get; set; }
         public long MSISDN { get; set; }
@@ -15,13 +15,24 @@ namespace SimManager.Model
         public DateTime Created { get; set; }
         public SimCardType Type { get; set; }
         public SimCardStatus Status = SimCardStatus.Inactive;
+        public string StatusText { 
+            get {
+                switch (Status)
+                {
+                    case SimCardStatus.Inactive:
+                        return "A kártya inaktív";
+                    case SimCardStatus.Active:
+                        return "A kártya aktív";
+                    default:
+                        return "A kártya letiltott";
+
+                }
+            } 
+        }
+        public bool CanBeReactivated { get => Type == SimCardType.Enhanced; }
+
         private int Balance = 0;
         private int TriesCount = 0;
-
-        public SimCard()
-        {
-
-        }
 
         public string GetInfo()
         {
@@ -34,21 +45,34 @@ namespace SimManager.Model
             return Balance;
         }
 
-        public bool Activate(int givenPinCode)
+        public virtual bool Activate(int givenPinCode)
         {
-            if (givenPinCode == PinCode)
+            if (Status == SimCardStatus.Inactive)
             {
-                TriesCount = 0;
-                Status = SimCardStatus.Active;
-                return true;
-            }
-            TriesCount++;
-
-            if (TriesCount >= 3)
-            {
-                this.Status = SimCardStatus.Disabled;
+                if (givenPinCode == PinCode)
+                {
+                    TriesCount = 0;
+                    Status = SimCardStatus.Active;
+                    return true;
+                }
+                TriesCount++;
             }
 
+            if (TriesCount > 2)
+            {
+                System.Diagnostics.Debug.WriteLine("Disabling");
+                Status = SimCardStatus.Disabled;
+            }
+
+            System.Diagnostics.Debug.WriteLine("Tries counter: " + TriesCount);
+
+
+            return false;
+        }
+
+        public virtual bool ReActivate(int reactivationCode)
+        {
+            System.Diagnostics.Debug.WriteLine("Base readtivation");
             return false;
         }
     }

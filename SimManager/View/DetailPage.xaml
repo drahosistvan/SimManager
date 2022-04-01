@@ -29,6 +29,12 @@
             Style="{ThemeResource TitleTextBlockStyle}"
             HorizontalAlignment="Left"
             Text="{x:Bind simcard.MSISDN, Mode=OneWay}" />
+            <TextBlock x:Name="pin" Text="PINCODE" />
+            <TextBlock
+            Margin="8,0"
+            Style="{ThemeResource TitleTextBlockStyle}"
+            HorizontalAlignment="Left"
+            Text="{x:Bind simcard.PinCode, Mode=OneWay}" />
             <TextBlock
             Margin="12,8"
             HorizontalAlignment="Left"

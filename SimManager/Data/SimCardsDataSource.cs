@@ -11,48 +11,45 @@ namespace SimManager.Data
 {
     class SimCardsDataSource
     {
-        private static ObservableCollection<SimCard> _cards = new ObservableCollection<SimCard>()
-        {
-            new SimCard()
-            {
-                id = 0,
-                MSISDN = 308285112,
-                Subscriber = "Drahos István",
-                PinCode = 1234,
-                Created = DateTime.Now,
-            },
-            new SimCard()
-            {
-                id = 1,
-                MSISDN = 308285113,
-                Subscriber = "Drahos István",
-                PinCode = 1234,
-                Created = DateTime.Now,
-            },
-            new SimCard()
-            {
-                id = 2,
-                MSISDN = 308285113,
-                Subscriber = "Drahos István",
-                PinCode = 1234,
-                Created = DateTime.Now,
-            },
-            new SimCard()
-            {
-                id = 3,
-                MSISDN = 308285113,
-                Subscriber = "Drahos István",
-                PinCode = 1234,
-                Created = DateTime.Now,
-            }
-        };
+        private static ObservableCollection<ISimCard> _cards = new ObservableCollection<ISimCard>();
+        
 
-        public static ObservableCollection<SimCard> GetAllItems()
+        private static void InitSimCards()
         {
+            if (_cards.Count == 0)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    ISimCard card;
+                    Random random = new Random();
+
+                    if (random.Next() > (Int32.MaxValue / 2))
+                    {
+                        card = new StandardSimCard();
+                        card.PinCode = 1111;
+                    } else
+                    {
+                        card = new EnhancedSimCard();
+                        card.PinCode = 2222;
+                    }
+
+                    card.id = i;
+                    card.MSISDN = 308285112;
+                    card.Subscriber = string.Format("Subscriber {0}", i + 1);
+                    card.Created = DateTime.Now;
+                    
+                    _cards.Add(card);
+                }
+            }
+        }
+
+        public static ObservableCollection<ISimCard> GetAllItems()
+        {
+            InitSimCards();
             return _cards;
         }
 
-        public static SimCard GetItemById(int id)
+        public static ISimCard GetItemById(int id)
         {
             return _cards[id];
         }

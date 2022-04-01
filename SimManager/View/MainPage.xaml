@@ -53,16 +53,22 @@
                 </ListView.Header>
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid>
+                        <Grid Padding="0,10,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="3*"/>
                                 <ColumnDefinition Width="3*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
-                                <RowDefinition MinHeight="50"/>
+                                <RowDefinition/>
+                                <RowDefinition/>
                             </Grid.RowDefinitions>
-                            <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding MSISDN}" Margin="0,0,5,0"/>
-                            <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding Subscriber}"/>
+                            <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Subscriber}" Margin="0,0,5,0" FontSize="14" FontWeight="Bold"/>
+                            <TextBlock Grid.Column="1" Grid.Row="0" FontSize="14" FontStyle="Italic">
+                                <Run Text=" ("/>
+                                <Run Text="{Binding MSISDN}"/>
+                                <Run Text=")"/>
+                            </TextBlock>
+                            <TextBlock Grid.Column="0" Grid.Row="1" Text="{Binding Type}"/>
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
@@ -76,17 +82,21 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <CommandBar Grid.Row="0" DefaultLabelPosition="Right" HorizontalAlignment="Left">
                     <AppBarButton x:Name="ActivationButton" Icon="Accept" Label="Aktiválás" Click="ActivationButton_Click"/>
+                    <AppBarButton x:Name="ReActivationButton" Icon="Refresh" Label="Újraaktiválás" Click="ReActivationButton_Click"/>
                     <AppBarButton x:Name="DisableButton" Icon="Clear" Label="Letiltás" Click="DisableButton_Click"/>
                     <AppBarButton x:Name="GetBallanceButton" Icon="Calculator" Label="Egyenleg lekérdezése" Click="SimBalance_Click"/>
                     
                 </CommandBar>
                 <TextBlock x:Name="pageTitle" Text="SIM Details" Grid.Row="1" />
                 <TextBlock Grid.Row="2" Text="{x:Bind selectedSimCard.MSISDN, Mode=OneWay}" />
-
-                <TextBlock Grid.Row="3" Text="{x:Bind selectedSimCard.Subscriber, Mode=OneWay}"
+                <TextBlock Grid.Row="3" Text="{x:Bind selectedSimCard.Subscriber, Mode=OneWay}" />
+                <TextBlock Grid.Row="4" Text="{x:Bind selectedSimCard.Type, Mode=OneWay}" />
+                <TextBlock Grid.Row="5" Text="{x:Bind selectedSimCard.StatusText, Mode=OneWay}"
             EntranceNavigationTransitionInfo.IsTargetElement="True" />
             </Grid>
         </StackPanel>
